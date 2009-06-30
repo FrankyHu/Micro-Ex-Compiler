@@ -29,6 +29,8 @@ extern symtab *findForOP(const char *s);
 "<="					{return LE;}
 "=="					{return E;}
 "!="					{return NE;}
+">"					{return JL;}
+"<"					{return JG;}
 [0-9]+\.?[0-9]*[eE][+-]?[0-9]+		{yylval.symp = findForSymbol(yytext,"EXP_FLOAT_LITERAL");return EXP_FLOAT_LITERAL;}
 [0-9]+\.[0-9]*				{yylval.symp = findForSymbol(yytext,"Float");return FLOAT_LITERAL;}
 [0-9]+					{yylval.symp = findForSymbol(yytext,"Integer");return INT_LITERAL;}

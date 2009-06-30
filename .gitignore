@@ -2,3 +2,5 @@ a.out
 lex.yy.c
 microEX.tab.cpp
 microEX.tab.hpp
+microEX.l~
+microEX.ypp~

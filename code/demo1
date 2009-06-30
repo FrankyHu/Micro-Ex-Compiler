@@ -9,7 +9,7 @@ for(I:=1 to 100)
   A:=-LLL[I] + B * D - C;
 endfor
 
-if (A >= 10000.0) then
+if (A > 10000.0) then
   print(A+3.14);
 else
   print(2,1.4);

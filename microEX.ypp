@@ -1,11 +1,8 @@
 %{
 #include <iostream>
 #include <sstream>
-#include <cstring>
 #include <string>
-#include <vector>
 #include <deque>
-#include <stack>
 
 struct symtab {
 	char *name;
@@ -14,15 +11,15 @@ struct symtab {
 using namespace std;
 extern int yylex(void);
 void yyerror (const char *s){cerr << s << endl;} // Print error message
-deque<string> output;
-stack<int> nested; // To support mested structure
+deque <string> output; // Output the result
+deque <int> nested; // To support nested structure
+int TMP_VAR_ACC = 0; // Variable counter
+int TMP_JMP_ACC = 0; // Jump counter
 string intToString(int &i); // Convert integer to string
 symtab SYMBOL_TABLE[100000];
 symtab OP_TABLE[100000];
 symtab *findForSymbol(const char *s,const char *s2);
 symtab *findForOP(const char *s);
-int TMP_VAR_ACC = 0;
-int TMP_JMP_ACC = 0;
 
 %}
 
@@ -30,8 +27,8 @@ int TMP_JMP_ACC = 0;
 	struct symtab *symp;
 	struct symtab *opt;
 }
-%token<opt> PROGRAM BEGIN_T END IF THEN ELSE ENDIF FOR TO ENDFOR WHILE ENDWHILE DECLARE AS INTEGER FLOAT ASSIGN GE NE E LE DOWNTO EXPR STEP
-%token<symp> STR_LITERAL ID EXP_FLOAT_LITERAL FLOAT_LITERAL INT_LITERAL 
+%token<opt> PROGRAM BEGIN_T END AS INTEGER FLOAT ASSIGN GE NE E LE JL JG DOWNTO EXPR STEP IF THEN ELSE ENDIF FOR TO ENDFOR WHILE ENDWHILE DECLARE
+%token<symp> INT_LITERAL FLOAT_LITERAL STR_LITERAL ID EXP_FLOAT_LITERAL
 
 %type<symp> name_list type primary expr mulexp expr_list bool_expr bool_op assign_primary for_t assign_stmt to_downto else_t while_t
 %%
@@ -111,8 +108,8 @@ loop_stmt:
 		}
 	|	while_t '(' bool_expr ')' stmt_list ENDWHILE {
 			output.push_back("\tJ lb&" + string($1->type));
-			output.push_back("lb&" + intToString(nested.top()) + ": ");
-			nested.pop();
+			output.push_back("lb&" + intToString(nested.front()) + ": ");
+			nested.pop_front();
 		}
 	;
 
@@ -151,7 +148,7 @@ if_stmt:
 		}
 	|	IF '(' bool_expr ')' THEN stmt_list ENDIF {
 			output.push_back("lb&" + string($3->name) + ":");
-			nested.pop();
+			nested.pop_front();
 		}
 	;
 
@@ -168,7 +165,7 @@ bool_expr:
 			output.push_back("\t" + string($2->name) + " lb&" + intToString(TMP_JMP_ACC));
 			$$ = new symtab();
 			$$->name = strdup(intToString(TMP_JMP_ACC).data());
-			nested.push(TMP_JMP_ACC);
+			nested.push_front(TMP_JMP_ACC);
 		}
 	;
 
@@ -178,29 +175,40 @@ else_t:
 			output.push_back("\tJ lb&" + intToString(TMP_JMP_ACC));
 			$$ = new symtab();
 			$$->name = strdup(intToString(TMP_JMP_ACC).data());
-			output.push_back("lb&" + intToString(nested.top()) + ": ");
-			nested.pop();
+			output.push_back("lb&" + intToString(nested.front()) + ": ");
+			nested.pop_front();
 		}
 	;
 
 bool_op:
 		GE {
-			$$ = new symtab(); $$->name = (char *)"JL";
+			$$ = new symtab(); 
+			$$->name = (char *)"JL";
 		}
+
 	|	LE {
-			$$ = new symtab(); $$->name = (char *)"JG";
+			$$ = new symtab(); 
+			$$->name = (char *)"JG";
+		}
+	
+	|	JL {
+			$$ = new symtab();
+			$$->name = (char *)"JLE";
+		}
+	
+	|	JG {
+			$$ = new symtab(); 
+			$$->name = (char *)"JGE";
 		}	
-	|	'>' {
-			$$ = new symtab(); $$->name = (char *)"JLE";
-		}	
-	|	'<' {
-			$$ = new symtab(); $$->name = (char *)"JGE";
-		}	
+
 	|	E {
-			$$ = new symtab(); $$->name = (char *)"JNE";
+			$$ = new symtab(); 
+			$$->name = (char *)"JNE";
 		}	
+
 	|	NE {
-			$$ = new symtab(); $$->name = (char *)"JE";
+			$$ = new symtab(); 
+			$$->name = (char *)"JE";
 		}
 	;
 	
@@ -421,7 +429,7 @@ string intToString(int &i) {
 	return ss.str();
 }
 
-symtab * findForSymbol(const char *s, const char *s2){
+symtab * findForSymbol(const char *s, const char *s2) {
 	struct symtab *sp;
 	for (sp = SYMBOL_TABLE; sp < &SYMBOL_TABLE[100000]; sp++) {
 		if (sp->name && !strcmp(sp->name, s)) {
@@ -440,7 +448,7 @@ symtab * findForSymbol(const char *s, const char *s2){
 	exit(1);
 }
 
-symtab * findForOP(const char *s){
+symtab * findForOP(const char *s) {
 	struct symtab *sp;	
 	for (sp = OP_TABLE; sp < &OP_TABLE[1000]; sp++) {
 		if (sp->name && !strcmp(sp->name, s))
