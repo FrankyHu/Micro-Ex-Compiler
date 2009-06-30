@@ -16,7 +16,7 @@ extern int yylex(void);
 void yyerror (const char *s){cerr << s << endl;} // Print error message
 deque<string> output;
 stack<int> nested; // To support mested structure
-string intToString(int &i); // Convert integer to string
+string int2str(int &i); // Convert integer to string
 symtab SYMBOL_TABLE[100000];
 symtab OP_TABLE[100000];
 symtab *findForSymbol(const char *s,const char *s2);
@@ -85,14 +85,14 @@ loop_stmt:
 		}
 	|	for_t to_downto expr STEP expr ')' stmt_list ENDFOR {
 			TMP_VAR_ACC++;
-			findForSymbol(string("T&"+intToString(TMP_VAR_ACC)).data(), (const char*)$2->type);
+			findForSymbol(string("T&"+int2str(TMP_VAR_ACC)).data(), (const char*)$2->type);
 			if (strcmp($2->name,"TO") == 0) {
-				output.push_back("\tI_ADD " + string($1->name) + "," + string($5->name) + ",T&" + intToString(TMP_VAR_ACC));
-				output.push_back("\tI_STORE T&" + intToString(TMP_VAR_ACC) + "," + string($1->name));
+				output.push_back("\tI_ADD " + string($1->name) + "," + string($5->name) + ",T&" + int2str(TMP_VAR_ACC));
+				output.push_back("\tI_STORE T&" + int2str(TMP_VAR_ACC) + "," + string($1->name));
 			}
 			else if (strcmp($2->name,"DOWNTO") == 0) {
-				output.push_back("\tI_SUB " + string($1->name) + "," + string($5->name) + ",T&" + intToString(TMP_VAR_ACC));
-				output.push_back("\tI_STORE T&" + intToString(TMP_VAR_ACC) + "," + string($1->name));
+				output.push_back("\tI_SUB " + string($1->name) + "," + string($5->name) + ",T&" + int2str(TMP_VAR_ACC));
+				output.push_back("\tI_STORE T&" + int2str(TMP_VAR_ACC) + "," + string($1->name));
 			}
 			
 			if (strcmp(findForSymbol($1->name,"")->type,"Integer") == 0) {
@@ -111,7 +111,7 @@ loop_stmt:
 		}
 	|	while_t '(' bool_expr ')' stmt_list ENDWHILE {
 			output.push_back("\tJ lb&" + string($1->type));
-			output.push_back("lb&" + intToString(nested.top()) + ": ");
+			output.push_back("lb&" + int2str(nested.top()) + ": ");
 			nested.pop();
 		}
 	;
@@ -119,9 +119,9 @@ loop_stmt:
 while_t:
 		WHILE {
 			TMP_JMP_ACC++;
-			output.push_back("lb&" + intToString(TMP_JMP_ACC) + ":");
+			output.push_back("lb&" + int2str(TMP_JMP_ACC) + ":");
 			$$ = new symtab();
-			$$->type = strdup(intToString(TMP_JMP_ACC).data());
+			$$->type = strdup(int2str(TMP_JMP_ACC).data());
 		}
 	;
 
@@ -137,10 +137,10 @@ to_downto:
 for_t:
 		FOR '(' assign_stmt {
 			TMP_JMP_ACC++;
-			output.push_back("lb&" + intToString(TMP_JMP_ACC) + ":");
+			output.push_back("lb&" + int2str(TMP_JMP_ACC) + ":");
 			$$ = new symtab();
 			$$->name = $3->name;
-			$$->type = strdup(intToString(TMP_JMP_ACC).data());
+			$$->type = strdup(int2str(TMP_JMP_ACC).data());
 		}
 	;
 
@@ -165,9 +165,9 @@ bool_expr:
 			else if (strcmp(id->type,"Float") == 0) {
 				output.push_back("\tF_CMP " + string($1->name) + "," + string($3->name));
 			}
-			output.push_back("\t" + string($2->name) + " lb&" + intToString(TMP_JMP_ACC));
+			output.push_back("\t" + string($2->name) + " lb&" + int2str(TMP_JMP_ACC));
 			$$ = new symtab();
-			$$->name = strdup(intToString(TMP_JMP_ACC).data());
+			$$->name = strdup(int2str(TMP_JMP_ACC).data());
 			nested.push(TMP_JMP_ACC);
 		}
 	;
@@ -175,10 +175,10 @@ bool_expr:
 else_t:
 		ELSE {
 			TMP_JMP_ACC++;
-			output.push_back("\tJ lb&" + intToString(TMP_JMP_ACC));
+			output.push_back("\tJ lb&" + int2str(TMP_JMP_ACC));
 			$$ = new symtab();
-			$$->name = strdup(intToString(TMP_JMP_ACC).data());
-			output.push_back("lb&" + intToString(nested.top()) + ": ");
+			$$->name = strdup(int2str(TMP_JMP_ACC).data());
+			output.push_back("lb&" + int2str(nested.top()) + ": ");
 			nested.pop();
 		}
 	;
@@ -253,10 +253,10 @@ type:
 primary:
 		'-' primary { 
 			TMP_VAR_ACC++;
-			output.push_back("\tUMINUNS " + string($2->name) + ",T&" + intToString(TMP_VAR_ACC));
-			findForSymbol(string("T&"+intToString(TMP_VAR_ACC)).data(), (const char*)$2->type);
+			output.push_back("\tUMINUNS " + string($2->name) + ",T&" + int2str(TMP_VAR_ACC));
+			findForSymbol(string("T&"+int2str(TMP_VAR_ACC)).data(), (const char*)$2->type);
 			$$ = new symtab(); 
-			$$->name = strdup((char*)string(string("T&")+intToString(TMP_VAR_ACC)).data());
+			$$->name = strdup((char*)string(string("T&")+int2str(TMP_VAR_ACC)).data());
 			$$->type = $2->type;
 		}
 
@@ -287,30 +287,30 @@ expr:
 		expr '+' mulexp { 			
 			symtab* id = findForSymbol($1->name,$1->type);
 			TMP_VAR_ACC++;
-			findForSymbol(string("T&"+intToString(TMP_VAR_ACC)).data(), (const char*)$1->type);
+			findForSymbol(string("T&"+int2str(TMP_VAR_ACC)).data(), (const char*)$1->type);
 			if (strcmp(id->type,"Integer") == 0) {
-				output.push_back("\tI_ADD " + string($1->name) + "," + string($3->name) + ",T&" + intToString(TMP_VAR_ACC));
+				output.push_back("\tI_ADD " + string($1->name) + "," + string($3->name) + ",T&" + int2str(TMP_VAR_ACC));
 			}
 			else if (strcmp(id->type,"Float") == 0) {
-				output.push_back("\tF_ADD " + string($1->name) + "," + string($3->name) + ",T&" + intToString(TMP_VAR_ACC));
+				output.push_back("\tF_ADD " + string($1->name) + "," + string($3->name) + ",T&" + int2str(TMP_VAR_ACC));
 			}
 			$$ = new symtab();
-			$$->name = strdup((char*)string(string("T&")+intToString(TMP_VAR_ACC)).data());		
+			$$->name = strdup((char*)string(string("T&")+int2str(TMP_VAR_ACC)).data());		
 			$$->type = $1->type;
 		}
 
 	|	expr '-' mulexp { 
 			symtab* id = findForSymbol($1->name,$1->type);
 			TMP_VAR_ACC++;
-			findForSymbol(string("T&"+intToString(TMP_VAR_ACC)).data(), (const char*)$1->type);
+			findForSymbol(string("T&"+int2str(TMP_VAR_ACC)).data(), (const char*)$1->type);
 			if (strcmp(id->type,"Integer") == 0) {
-				output.push_back("\tI_SUB " + string($1->name) + "," + string($3->name) + ",T&" + intToString(TMP_VAR_ACC));
+				output.push_back("\tI_SUB " + string($1->name) + "," + string($3->name) + ",T&" + int2str(TMP_VAR_ACC));
 			}
 			else if (strcmp(id->type,"Float") == 0) {
-				output.push_back("\tF_SUB " + string($1->name) + "," + string($3->name) + ",T&" + intToString(TMP_VAR_ACC));
+				output.push_back("\tF_SUB " + string($1->name) + "," + string($3->name) + ",T&" + int2str(TMP_VAR_ACC));
 			}
 			$$ = new symtab();
-			$$->name = strdup((char*)string(string("T&")+intToString(TMP_VAR_ACC)).data());
+			$$->name = strdup((char*)string(string("T&")+int2str(TMP_VAR_ACC)).data());
 			$$->type = $1->type;
 		}
 
@@ -323,30 +323,30 @@ mulexp:
 		mulexp '*' primary {
 			symtab* id = findForSymbol($1->name,$1->type);
 			TMP_VAR_ACC++;
-			findForSymbol(string("T&"+intToString(TMP_VAR_ACC)).data(), (const char*)$1->type);
+			findForSymbol(string("T&"+int2str(TMP_VAR_ACC)).data(), (const char*)$1->type);
 			if (strcmp(id->type,"Integer") == 0) {
-				output.push_back("\tI_MUL " + string($1->name) + "," + string($3->name) + ",T&" + intToString(TMP_VAR_ACC));
+				output.push_back("\tI_MUL " + string($1->name) + "," + string($3->name) + ",T&" + int2str(TMP_VAR_ACC));
 			}
 			else if (strcmp(id->type,"Float") == 0) {
-				output.push_back("\tF_MUL " + string($1->name) + "," + string($3->name) + ",T&" + intToString(TMP_VAR_ACC));
+				output.push_back("\tF_MUL " + string($1->name) + "," + string($3->name) + ",T&" + int2str(TMP_VAR_ACC));
 			}
 			$$ = new symtab();
-			$$->name = strdup((char*)string(string("T&")+intToString(TMP_VAR_ACC)).data());		
+			$$->name = strdup((char*)string(string("T&")+int2str(TMP_VAR_ACC)).data());		
 			$$->type = $1->type;
 		}
 
 	|	mulexp '/' primary { 
 			symtab* id = findForSymbol($1->name,$1->type);
 			TMP_VAR_ACC++;
-			findForSymbol(string("T&"+intToString(TMP_VAR_ACC)).data(), (const char*)$1->type);
+			findForSymbol(string("T&"+int2str(TMP_VAR_ACC)).data(), (const char*)$1->type);
 			if (strcmp(id->type,"Integer") == 0) {
-				output.push_back("\tI_DIV " + string($1->name) + "," + string($3->name) + ",T&" + intToString(TMP_VAR_ACC));
+				output.push_back("\tI_DIV " + string($1->name) + "," + string($3->name) + ",T&" + int2str(TMP_VAR_ACC));
 			}
 			else if (strcmp(id->type,"Float") == 0) {
-				output.push_back("\tF_DIV " + string($1->name) + "," + string($3->name) + ",T&" + intToString(TMP_VAR_ACC));
+				output.push_back("\tF_DIV " + string($1->name) + "," + string($3->name) + ",T&" + int2str(TMP_VAR_ACC));
 			}
 			$$ = new symtab();
-			$$->name = strdup((char*)string(string("T&")+intToString(TMP_VAR_ACC)).data());		
+			$$->name = strdup((char*)string(string("T&")+int2str(TMP_VAR_ACC)).data());		
 			$$->type = $1->type;
 		}
 
@@ -408,13 +408,13 @@ int main() {
 	}
 
 	for (int a = 1; a <= TMP_VAR_ACC; a++) {
-		cout<< "\tDeclare T&" << a << "," << findForSymbol(string("T&"+intToString(a)).data(),"")->type << endl;
+		cout<< "\tDeclare T&" << a << "," << findForSymbol(string("T&"+int2str(a)).data(),"")->type << endl;
 	}
 
 	return 0;
 }
 
-string intToString(int &i) {
+string int2str(int &i) {
 	string s;
 	stringstream ss(s);
 	ss << i;
