@@ -523,7 +523,7 @@ int yy_flex_debug = 0;
 char *yytext;
 #line 1 "microEX.l"
 #line 2 "microEX.l"
-#include "final.tab.hpp"
+#include "microEX.tab.hpp"
 #include <iostream>
 using namespace std;
 extern symtab *findForSymbol(const char *s, const char *s2);
