@@ -1,0 +1,13 @@
+%% Test Data for Compiler (CSC0004)
+Program while_loop
+Begin
+    declare A as integer;
+    while(A>5)
+    	declare b,c,d as integer;
+    	while(A>5)
+    		c:=1+2+3;
+    	ENDWHILE
+    	b:=c+1;
+    endwhile
+    
+End

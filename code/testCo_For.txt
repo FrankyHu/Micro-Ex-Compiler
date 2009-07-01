@@ -1,0 +1,13 @@
+Program Cp_for_While
+Begin
+    declare A as integer;
+    FOR(A:=50 DOWNTO 3 step 5)
+        declare b,c as integer;
+        C:=-B;
+    ENDFOR
+    while(A>5)
+    	declare d as integer;
+    	c:=1+2+3;
+    	b:=c+1;
+    endwhile
+End

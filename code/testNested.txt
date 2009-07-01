@@ -1,0 +1,13 @@
+%% Test Data for Compiler (CSC0004)
+Program nested
+Begin
+    declare A,B,C as integer;
+    while(A>5)
+    	B:=c+1;
+    	for(B:=1 to 100)
+    		declare d as integer;
+    		d:=1+2;
+    	endfor
+    	b:=c+1;
+    endwhile
+End
